@@ -1,46 +1,49 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
 
-import App from './components/App';
 import reportWebVitals from './reportWebVitals';
-import axios from 'axios';
-import reducers from './reducers';
-import {Provider} from 'react-redux';
-import {createStore, applyMiddleware} from 'redux';
-import createSagaMiddleware from 'redux-saga';
-import rootSaga from './sagas';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import {bugAdded, bugResolved, getUnresolvedBugsSelector, getBugsByUserSelector,bugAssignedToUser }  from './store/bugs'
+import {projectAdded, projectFinished, getUnresolvedProjectsSelector} from './store/projects'
+import {userAdded, userRegistered }  from './store/users'
 
 
- axios.defaults.withCredentials = true;
- axios.defaults.baseURL = 'http://rem-rest-api.herokuapp.com/api';
+import configureStore from './store/configureStore'
 
 
-const sagaMiddleware = createSagaMiddleware();
+const store = configureStore();
 
-const store = createStore(reducers, applyMiddleware(sagaMiddleware));
+ store.subscribe(() => {
+   console.log('Store changed!');
+ });
 
-// console.log(store.getState())
-// store.subscribe(() => {console.log(store.getState())})
+store.dispatch(bugAdded({description : 'First Bug'}));
+store.dispatch(bugAdded({description : 'Second Bug'}));
+store.dispatch(bugAdded({description : 'Third Bug'}));
+store.dispatch(bugAssignedToUser({bugId:1 , userId: 1}))
+store.dispatch(bugResolved({id: 1}));
 
-sagaMiddleware.run(rootSaga);
+console.log(getUnresolvedBugsSelector(store.getState()))
+console.log(getBugsByUserSelector(1)(store.getState()))
 
 
-ReactDOM.render(
- 
+store.dispatch(projectAdded({name  : 'First Project '}));
+store.dispatch(projectAdded({name  : 'Second Project '}));
+store.dispatch(projectAdded({name  : 'Third  Project'}));
+store.dispatch(projectFinished({id: 3}));
 
-  <React.StrictMode>
-     <Provider store={store}>
+console.log(getUnresolvedProjectsSelector(store.getState()))
 
-     
-    <App />
-    </Provider>
-   
-    
-  </React.StrictMode>,
-  
-  document.getElementById('root')
-);
+
+store.dispatch(userAdded({name  : 'First User '}));
+store.dispatch(userAdded({name  : 'Second User '}));
+store.dispatch(userAdded({name  : 'Third  User'}));
+store.dispatch(userRegistered({id: 3}));
+
+  console.log(store.getState());
+
+
+
+
+
+
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
